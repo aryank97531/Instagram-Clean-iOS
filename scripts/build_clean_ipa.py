@@ -9,7 +9,8 @@
   This script takes a decrypted Instagram IPA, injects ElleKit (CydiaSubstrate)
   and SPKSideloadFix (Keychain fix for non-jailbroken sideloading), patches
   the ARM64 assembly to enforce distraction-free and privacy preferences,
-  and packages a clean, ready-to-sideload IPA with 0 .appex bundles.
+  and packages a clean, ready-to-sideload IPA with 0 .appex bundles and strict
+  UNIX zip permissions.
 =============================================================================
 """
 
@@ -40,6 +41,11 @@ DISABLE_VIDEO_AUTOPLAY = True # Prevents automatic video autoplay
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(SCRIPT_DIR)
 BASE_IPA = os.path.join(ROOT_DIR, "Instagram-Decrypted.ipa")
+if not os.path.exists(BASE_IPA):
+    DOWNLOADS_BASE = os.path.expanduser(r"~\Downloads\Instagram-Decrypted.ipa")
+    if os.path.exists(DOWNLOADS_BASE):
+        BASE_IPA = DOWNLOADS_BASE
+
 OUTPUT_IPA = os.path.join(ROOT_DIR, "Instagram_Clean.ipa")
 
 print("=========================================================================")
@@ -61,11 +67,10 @@ def main():
 
     if not os.path.exists(BASE_IPA):
         print(f"[!] Base decrypted IPA not found at {BASE_IPA}.")
-        print("    Please place a decrypted Instagram v446.0.0 IPA in the root directory.")
+        print("    Please place a decrypted Instagram v446.0.0 IPA in the directory.")
         sys.exit(1)
 
     print("\n[*] Initializing ARM64 Assembler & Hook Generator...")
-    # Target table definitions: (CFString offset, return_value)
     targets = [
         (0x5a3d0, 1 if HIDE_REELS_TAB else 0),
         (0x5a370, 1 if HIDE_EXPLORE_TAB else 0),
