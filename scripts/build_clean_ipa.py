@@ -9,8 +9,9 @@
   This script takes a decrypted Instagram IPA, injects ElleKit (CydiaSubstrate)
   and SPKSideloadFix (Keychain fix for non-jailbroken sideloading), patches
   the ARM64 assembly to enforce distraction-free and privacy preferences,
-  and packages a clean, ready-to-sideload IPA with 0 .appex bundles and strict
-  UNIX zip permissions.
+  harmonizes CodeDirectory page hashes, generates clean CodeResources,
+  and packages a ready-to-sideload IPA with 0 .appex bundles, explicit Unix
+  directory records, and strict UNIX zip attributes (create_system=3).
 =============================================================================
 """
 
@@ -20,6 +21,8 @@ import shutil
 import zipfile
 import struct
 import plistlib
+import hashlib
+import re
 
 # ---------------------------------------------------------------------------
 # [USER CONFIGURATION] Toggle features on or off as desired:
