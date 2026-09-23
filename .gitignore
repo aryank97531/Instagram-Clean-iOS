@@ -1,0 +1,17 @@
+# Build artifacts & packages
+*.ipa
+*.zip
+*.tar.gz
+Payload/
+*.dylib.dSYM/
+*.app/
+
+# Environment & temporary files
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
