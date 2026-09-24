@@ -87,11 +87,28 @@ def main():
 
     # 1. ElleKit Framework Preparation
     print("\n[1] Preparing ElleKit CydiaSubstrate...")
-    prev_ipa = OUTPUT_IPA if os.path.exists(OUTPUT_IPA) else os.path.expanduser(r"~\Downloads\Instagram_Clean.ipa")
-    if os.path.exists(prev_ipa):
-        with zipfile.ZipFile(prev_ipa, "r") as prev_z:
-            ellekit_bin = prev_z.read("Payload/Instagram.app/Frameworks/CydiaSubstrate.framework/CydiaSubstrate")
-    else:
+    candidate_ipas = [
+        OUTPUT_IPA,
+        os.path.join(os.path.dirname(ROOT_DIR), "Instagram_Clean.ipa"),
+        os.path.expanduser(r"~\Downloads\Instagram_Clean.ipa"),
+    ]
+    agents_dir = os.path.join(os.path.dirname(ROOT_DIR), ".agents")
+    if os.path.exists(agents_dir):
+        for entry in os.listdir(agents_dir):
+            candidate_ipas.append(os.path.join(agents_dir, entry, "Instagram_Clean.ipa"))
+
+    ellekit_bin = None
+    for cand in candidate_ipas:
+        if os.path.exists(cand):
+            try:
+                with zipfile.ZipFile(cand, "r") as prev_z:
+                    if "Payload/Instagram.app/Frameworks/CydiaSubstrate.framework/CydiaSubstrate" in prev_z.namelist():
+                        ellekit_bin = prev_z.read("Payload/Instagram.app/Frameworks/CydiaSubstrate.framework/CydiaSubstrate")
+                        break
+            except Exception:
+                continue
+
+    if not ellekit_bin:
         print("[!] Previous IPA with CydiaSubstrate framework not found.")
         sys.exit(1)
 
@@ -533,18 +550,33 @@ def main():
     final_size = os.path.getsize(OUTPUT_IPA)
     print(f"\n[+] Successfully built deployable IPA: {OUTPUT_IPA} ({final_size / (1024*1024):.2f} MB)")
 
-    # Deploy to Downloads, Project Scratch Root, and Active Agent Directory
+    # Deploy to Downloads, Project Scratch Root, Current Working Directory, and Agent Directories
     DOWNLOADS_IPA = os.path.expanduser(r"~\Downloads\Instagram_Clean.ipa")
     PARENT_DIR = os.path.dirname(ROOT_DIR)
     SCRATCH_IPA = os.path.join(PARENT_DIR, "Instagram_Clean.ipa")
-    REVIEWER_IPA = os.path.join(PARENT_DIR, ".agents", "teamwork_preview_reviewer_dm_r1", "Instagram_Clean.ipa")
+    CWD_IPA = os.path.join(os.getcwd(), "Instagram_Clean.ipa")
 
-    for dest in [DOWNLOADS_IPA, SCRATCH_IPA, REVIEWER_IPA]:
+    destinations = [DOWNLOADS_IPA, SCRATCH_IPA, CWD_IPA]
+
+    agents_dir = os.path.join(PARENT_DIR, ".agents")
+    if os.path.exists(agents_dir):
+        for entry in os.listdir(agents_dir):
+            if entry.startswith("teamwork_preview_reviewer_dm_"):
+                destinations.append(os.path.join(agents_dir, entry, "Instagram_Clean.ipa"))
+
+    seen = set()
+    unique_dests = []
+    for d in destinations:
+        norm = os.path.abspath(d)
+        if norm not in seen and norm != os.path.abspath(OUTPUT_IPA):
+            seen.add(norm)
+            unique_dests.append(d)
+
+    for dest in unique_dests:
         try:
             os.makedirs(os.path.dirname(dest), exist_ok=True)
-            if os.path.abspath(OUTPUT_IPA) != os.path.abspath(dest):
-                shutil.copy2(OUTPUT_IPA, dest)
-                print(f"[*] Deployed to: {dest} ({os.path.getsize(dest)} bytes)")
+            shutil.copy2(OUTPUT_IPA, dest)
+            print(f"[*] Deployed to: {dest} ({os.path.getsize(dest)} bytes)")
         except Exception as e:
             print(f"[!] Warning: Failed to deploy to {dest}: {e}")
 
