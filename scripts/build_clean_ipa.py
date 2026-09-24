@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 =============================================================================
-  Instagram Clean — Distraction-Free iOS IPA Builder & Patching Script
+  Instagram Clean -- Distraction-Free iOS IPA Builder & Patching Script
 =============================================================================
   Target: Instagram v446.0.0+ (iOS 16, 17, 18)
   Author: Aryan Kumar (https://github.com/aryank97531/Instagram-Clean-iOS)
@@ -413,8 +413,37 @@ def main():
             rules = {"^.*": True, "^.*\\.lproj/": {"optional": True, "weight": 1000.0}, "^.*\\.lproj/locversion.plist$": {"omit": True, "weight": 1100.0}, "^Base\\.lproj/": {"weight": 1010.0}, "^version\\.plist$": True}
             rules2 = {".*\\.dSYM($|/)": {"weight": 11.0}, "^(.*/)?\\.DS_Store$": {"omit": True, "weight": 2000.0}, "^.*": True, "^.*\\.lproj/": {"optional": True, "weight": 1000.0}, "^.*\\.lproj/locversion.plist$": {"omit": True, "weight": 1100.0}, "^Base\\.lproj/": {"weight": 1010.0}, "^Info\\.plist$": {"omit": True, "weight": 20.0}, "^PkgInfo$": {"omit": True, "weight": 20.0}, "^version\\.plist$": {"weight": 20.0}}
         else:
-            rules = {"^.*": True, "^.*\\.lproj/": {"optional": True, "weight": 1000.0}, "^.*\\.lproj/locversion.plist$": {"omit": True, "weight": 1100.0}, "^Base\\.lproj/": {"weight": 1010.0}, "^version.plist$": True}
-            rules2 = {".*\\.dSYM($|/)": {"weight": 11.0}, "^(.*/)?\\.DS_Store$": {"omit": True, "weight": 2000.0}, "^.*": True, "^.*\\.lproj/": {"optional": True, "weight": 1000.0}, "^.*\\.lproj/locversion.plist$": {"omit": True, "weight": 1100.0}, "^Base\\.lproj/": {"weight": 1010.0}, "^Info\\.plist$": {"omit": True, "weight": 20.0}, "^PkgInfo$": {"omit": True, "weight": 20.0}, "^embedded\\.provisionprofile$": {"weight": 20.0}, "^version\\.plist$": {"weight": 20.0}}
+            rules = {
+                "Frameworks/FBSharedFramework\\.framework/SC_Info/FBSharedFramework\\.(sinf|supp|supf|supx)$": {"omit": True, "weight": 10000},
+                "Frameworks/GoogleCast\\.framework/SC_Info/GoogleCast\\.(sinf|supp|supf|supx)$": {"omit": True, "weight": 10000},
+                "Frameworks/SpotifyiOS\\.framework/SC_Info/SpotifyiOS\\.(sinf|supp|supf|supx)$": {"omit": True, "weight": 10000},
+                "Frameworks/libavcodec\\.framework/SC_Info/libavcodec\\.(sinf|supp|supf|supx)$": {"omit": True, "weight": 10000},
+                "Frameworks/libavutil\\.framework/SC_Info/libavutil\\.(sinf|supp|supf|supx)$": {"omit": True, "weight": 10000},
+                "SC_Info/Instagram\\.(sinf|supp|supf|supx)$": {"omit": True, "weight": 10000},
+                "^.*": True,
+                "^.*\\.lproj/": {"optional": True, "weight": 1000.0},
+                "^.*\\.lproj/locversion.plist$": {"omit": True, "weight": 1100.0},
+                "^Base\\.lproj/": {"weight": 1010.0},
+                "^version.plist$": True
+            }
+            rules2 = {
+                ".*\\.dSYM($|/)": {"weight": 11.0},
+                "Frameworks/FBSharedFramework\\.framework/SC_Info/FBSharedFramework\\.(sinf|supp|supf|supx)$": {"omit": True, "weight": 10000},
+                "Frameworks/GoogleCast\\.framework/SC_Info/GoogleCast\\.(sinf|supp|supf|supx)$": {"omit": True, "weight": 10000},
+                "Frameworks/SpotifyiOS\\.framework/SC_Info/SpotifyiOS\\.(sinf|supp|supf|supx)$": {"omit": True, "weight": 10000},
+                "Frameworks/libavcodec\\.framework/SC_Info/libavcodec\\.(sinf|supp|supf|supx)$": {"omit": True, "weight": 10000},
+                "Frameworks/libavutil\\.framework/SC_Info/libavutil\\.(sinf|supp|supf|supx)$": {"omit": True, "weight": 10000},
+                "SC_Info/Instagram\\.(sinf|supp|supf|supx)$": {"omit": True, "weight": 10000},
+                "^(.*/)?\\.DS_Store$": {"omit": True, "weight": 2000.0},
+                "^.*": True,
+                "^.*\\.lproj/": {"optional": True, "weight": 1000.0},
+                "^.*\\.lproj/locversion.plist$": {"omit": True, "weight": 1100.0},
+                "^Base\\.lproj/": {"weight": 1010.0},
+                "^Info\\.plist$": {"omit": True, "weight": 20.0},
+                "^PkgInfo$": {"omit": True, "weight": 20.0},
+                "^embedded\\.provisionprofile$": {"weight": 20.0},
+                "^version\\.plist$": {"weight": 20.0}
+            }
 
         return plistlib.dumps({"files": files, "files2": files2, "rules": rules, "rules2": rules2})
 
@@ -502,7 +531,22 @@ def main():
             dst_zip.writestr(zinfo, data)
 
     final_size = os.path.getsize(OUTPUT_IPA)
-    print(f"\n[✓] Successfully built deployable IPA: {OUTPUT_IPA} ({final_size / (1024*1024):.2f} MB)")
+    print(f"\n[+] Successfully built deployable IPA: {OUTPUT_IPA} ({final_size / (1024*1024):.2f} MB)")
+
+    # Deploy to Downloads, Project Scratch Root, and Active Agent Directory
+    DOWNLOADS_IPA = os.path.expanduser(r"~\Downloads\Instagram_Clean.ipa")
+    PARENT_DIR = os.path.dirname(ROOT_DIR)
+    SCRATCH_IPA = os.path.join(PARENT_DIR, "Instagram_Clean.ipa")
+    REVIEWER_IPA = os.path.join(PARENT_DIR, ".agents", "teamwork_preview_reviewer_dm_r1", "Instagram_Clean.ipa")
+
+    for dest in [DOWNLOADS_IPA, SCRATCH_IPA, REVIEWER_IPA]:
+        try:
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+            if os.path.abspath(OUTPUT_IPA) != os.path.abspath(dest):
+                shutil.copy2(OUTPUT_IPA, dest)
+                print(f"[*] Deployed to: {dest} ({os.path.getsize(dest)} bytes)")
+        except Exception as e:
+            print(f"[!] Warning: Failed to deploy to {dest}: {e}")
 
 if __name__ == "__main__":
     main()
