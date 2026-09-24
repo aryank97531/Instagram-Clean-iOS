@@ -33,8 +33,8 @@ HIDE_EXPLORE_TAB = True       # Completely removes Explore search tab
 HIDE_ENTIRE_FEED = True       # Suppresses home feed post rendering
 PRESERVE_STORIES = True       # Keeps top Stories tray active
 GHOST_MODE_STORIES = True     # Anonymous story viewing (no seen receipts)
-GHOST_MODE_DMS = True         # Read direct messages without seen receipts
-HIDE_TYPING_INDICATOR = True  # Hides 'typing...' in chat
+# Note: GHOST_MODE_DMS, HIDE_TYPING_INDICATOR, and NO_SUGGESTED_CHATS are omitted
+# to restore Build 1's clean, unhindered real-time Direct Message socket pipeline.
 LIQUID_GLASS_UI = True        # Enables modern floating translucent navigation bar
 DISAPPEARING_MEDIA_SAVE = True# Disables screenshot alert & allows unlimited replay
 BLOCK_SPONSORED_ADS = True    # Strips sponsored posts & ads
@@ -71,7 +71,7 @@ OUTPUT_IPA = os.path.join(ROOT_DIR, "Instagram_Clean.ipa")
 
 print("=========================================================================")
 print("  INSTAGRAM CLEAN (v446.0.0) BUILDER & PATCHER")
-print("  [Real-Time DM Iris Delta Streaming & Ghost Mode Harmonization]")
+print("  [Build 1 Reconciled: Clean Unhindered Real-Time DM Pipeline]")
 print("=========================================================================")
 
 def main():
@@ -152,7 +152,7 @@ def main():
     ellekit_plist = plistlib.dumps(ellekit_plist_dict)
 
     # 2. Patch SCInsta.dylib
-    print("\n[2] Patching SCInsta.dylib (Neutralizing Iris delta blocks, 35 targets)...")
+    print("\n[2] Patching SCInsta.dylib (Build 1 Reconciled: Unhindered DM Pipeline)...")
     with open(SCINSTA_DYLIB, "rb") as f:
         scinsta_data = bytearray(f.read())
 
@@ -172,13 +172,9 @@ def main():
             scinsta_data[pos : pos + len(old_p)] = full_new
             pos = scinsta_data.find(old_p, pos + len(old_p))
 
-    # Neutralize first-run modal check
-    scinsta_data[0x1144c : 0x11450] = bytes.fromhex("08008052")
-
-    # Neutralize Iris Thread Delta & Message Update interception hooks:
-    scinsta_data[0x12b84 : 0x12b88] = bytes.fromhex("c0035fd6") # ret
-    scinsta_data[0x12c14 : 0x12c18] = bytes.fromhex("c0035fd6") # ret
-    scinsta_data[0x12cb8 : 0x12cbc] = bytes.fromhex("c0035fd6") # ret
+    # Note: 0x1144c, 0x12b84, 0x12c14, 0x12cb8 byte patches are strictly omitted
+    # to restore the clean, unhindered socket pipeline from Build 1 where live DM
+    # streaming functioned flawlessly without binary byte modifications.
 
     targets = [
         (0x5a3d0, 1 if HIDE_REELS_TAB else 0),
@@ -198,7 +194,6 @@ def main():
         (0x59930, 1),                                 # hide_reels_header
         (0x58e90, 1 if DISABLE_META_AI else 0),      # hide_meta_ai
         (0x59410, 1),                                 # hide_trending_searches
-        (0x59350, 1),                                 # no_suggested_chats
         (0x596f0, 1 if DISABLE_VIDEO_AUTOPLAY else 0),# disable_feed_autoplay
         (0x59850, 1),                                 # disable_auto_unmuting_reels
         (0x59a70, 1),                                 # prevent_doom_scrolling
@@ -211,11 +206,8 @@ def main():
         (0x59070, 1 if LIQUID_GLASS_UI else 0),      # liquid_glass_surfaces
         (0x5a650, 0),                                 # call_confirm: direct one-tap calling
         (0x5a130, 1 if GHOST_MODE_STORIES else 0),   # no_seen_receipt (Ghost Stories)
-        (0x59f30, 1 if GHOST_MODE_DMS else 0),       # remove_lastseen (Ghost DMs)
-        (0x59f90, 1 if HIDE_TYPING_INDICATOR else 0),# disable_typing_status
         (0x5a0d0, 1 if DISAPPEARING_MEDIA_SAVE else 0), # remove_screenshot_alert
         (0x5a010, 1 if DISAPPEARING_MEDIA_SAVE else 0), # unlimited_replay
-        (0x59ed0, 0),                                 # keep_deleted_message -> 0 (Iris socket unblocking)
     ]
 
     ks = keystone.Ks(keystone.KS_ARCH_ARM64, keystone.KS_MODE_LITTLE_ENDIAN)
@@ -570,9 +562,10 @@ def main():
     agents_dir = os.path.join(PARENT_DIR, ".agents")
     if os.path.exists(agents_dir):
         for entry in os.listdir(agents_dir):
-            if (entry.startswith("teamwork_preview_reviewer_dm_") or
+            if (entry.startswith("teamwork_preview_reviewer") or
                 entry.startswith("teamwork_preview_victory_auditor") or
-                entry.startswith("teamwork_preview_implementer_r1")) and os.path.isdir(os.path.join(agents_dir, entry)):
+                entry.startswith("teamwork_preview_implementer") or
+                entry.startswith("teamwork_preview_swe")) and os.path.isdir(os.path.join(agents_dir, entry)):
                 destinations.append(os.path.join(agents_dir, entry, "Instagram_Clean.ipa"))
 
     seen = set()
