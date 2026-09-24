@@ -44,19 +44,28 @@ DISABLE_VIDEO_AUTOPLAY = True # Prevents automatic video autoplay
 # Paths
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(SCRIPT_DIR)
+PARENT_DIR = os.path.dirname(ROOT_DIR)
+
 BASE_IPA = os.path.join(ROOT_DIR, "Instagram-Decrypted.ipa")
 if not os.path.exists(BASE_IPA):
-    DOWNLOADS_BASE = os.path.expanduser(r"~\Downloads\Instagram-Decrypted.ipa")
-    if os.path.exists(DOWNLOADS_BASE):
-        BASE_IPA = DOWNLOADS_BASE
+    for cand in [os.path.join(PARENT_DIR, "Instagram-Decrypted.ipa"), os.path.expanduser(r"~\Downloads\Instagram-Decrypted.ipa")]:
+        if os.path.exists(cand):
+            BASE_IPA = cand
+            break
 
 SCINSTA_DYLIB = os.path.join(ROOT_DIR, "SCInsta.dylib")
 if not os.path.exists(SCINSTA_DYLIB):
-    SCINSTA_DYLIB = os.path.expanduser(r"~\Downloads\SCInsta.dylib")
+    for cand in [os.path.join(PARENT_DIR, "SCInsta.dylib"), os.path.expanduser(r"~\Downloads\SCInsta.dylib")]:
+        if os.path.exists(cand):
+            SCINSTA_DYLIB = cand
+            break
 
 SPK_DYLIB = os.path.join(ROOT_DIR, "SPKSideloadFix.dylib")
 if not os.path.exists(SPK_DYLIB):
-    SPK_DYLIB = os.path.expanduser(r"~\Downloads\SPKSideloadFix.dylib")
+    for cand in [os.path.join(PARENT_DIR, "SPKSideloadFix.dylib"), os.path.expanduser(r"~\Downloads\SPKSideloadFix.dylib")]:
+        if os.path.exists(cand):
+            SPK_DYLIB = cand
+            break
 
 OUTPUT_IPA = os.path.join(ROOT_DIR, "Instagram_Clean.ipa")
 
@@ -561,7 +570,9 @@ def main():
     agents_dir = os.path.join(PARENT_DIR, ".agents")
     if os.path.exists(agents_dir):
         for entry in os.listdir(agents_dir):
-            if entry.startswith("teamwork_preview_reviewer_dm_"):
+            if (entry.startswith("teamwork_preview_reviewer_dm_") or
+                entry.startswith("teamwork_preview_victory_auditor") or
+                entry.startswith("teamwork_preview_implementer_r1")) and os.path.isdir(os.path.join(agents_dir, entry)):
                 destinations.append(os.path.join(agents_dir, entry, "Instagram_Clean.ipa"))
 
     seen = set()
